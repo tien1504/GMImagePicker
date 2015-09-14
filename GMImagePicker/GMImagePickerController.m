@@ -8,6 +8,7 @@
 
 #import "GMImagePickerController.h"
 #import "GMAlbumsViewController.h"
+#import "GMGridViewController.h"
 @import Photos;
 
 @interface GMImagePickerController () <UINavigationControllerDelegate>
@@ -33,20 +34,21 @@
         _minimumInteritemSpacing = 2.0;
         
         //Sample of how to select the collections you want to display:
-        _customSmartCollections = @[@(PHAssetCollectionSubtypeSmartAlbumFavorites),
+        /*_customSmartCollections = @[@(PHAssetCollectionSubtypeSmartAlbumFavorites),
                                     @(PHAssetCollectionSubtypeSmartAlbumRecentlyAdded),
                                     @(PHAssetCollectionSubtypeSmartAlbumVideos),
                                     @(PHAssetCollectionSubtypeSmartAlbumSlomoVideos),
                                     @(PHAssetCollectionSubtypeSmartAlbumTimelapses),
                                     @(PHAssetCollectionSubtypeSmartAlbumBursts),
-                                    @(PHAssetCollectionSubtypeSmartAlbumPanoramas)];
+                                    @(PHAssetCollectionSubtypeSmartAlbumPanoramas)];*/
         //If you don't want to show smart collections, just put _customSmartCollections to nil;
-        //_customSmartCollections=nil;
+        _customSmartCollections=nil;
         
         //Which media types will display
-        _mediaTypes = @[@(PHAssetMediaTypeAudio),
-                        @(PHAssetMediaTypeVideo),
-                        @(PHAssetMediaTypeImage)];
+        //_mediaTypes = @[@(PHAssetMediaTypeAudio),
+        //                @(PHAssetMediaTypeVideo),
+        //                @(PHAssetMediaTypeImage)];
+        _mediaTypes = @[@(PHAssetMediaTypeVideo)];
         
         self.preferredContentSize = kPopoverContentSize;
         
@@ -77,8 +79,29 @@
 
 - (void)setupNavigationController
 {
-    GMAlbumsViewController *albumsViewController = [[GMAlbumsViewController alloc] init];
-    _navigationController = [[UINavigationController alloc] initWithRootViewController:albumsViewController];
+    //GMAlbumsViewController *albumsViewController = [[GMAlbumsViewController alloc] init];
+    
+    NSMutableArray *allFetchResultArray = [[NSMutableArray alloc] init];
+    NSMutableArray *allFetchResultLabel = [[NSMutableArray alloc] init];
+    {
+        PHFetchOptions *options = [[PHFetchOptions alloc] init];
+        options.predicate = [NSPredicate predicateWithFormat:@"mediaType in %@", self.mediaTypes];
+        options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+        PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsWithOptions:options];
+        [allFetchResultArray addObject:assetsFetchResult];
+        [allFetchResultLabel addObject:NSLocalizedStringFromTableInBundle(@"picker.table.all-photos-label",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"All photos")];
+    }
+    
+    //Init the GMGridViewController
+    GMGridViewController *gridViewController = [[GMGridViewController alloc] initWithPicker:self];
+    //Set the title
+    gridViewController.title = @"All Videos";//cell.textLabel.text;
+    //Use the prefetched assets!
+    if (allFetchResultArray.count > 0)
+        gridViewController.assetsFetchResults = [allFetchResultArray objectAtIndex:0];
+    
+    
+    _navigationController = [[UINavigationController alloc] initWithRootViewController:gridViewController];
     _navigationController.delegate = self;
     
     [_navigationController willMoveToParentViewController:self];

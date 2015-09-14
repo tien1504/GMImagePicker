@@ -207,6 +207,16 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     PHFetchResult *fetchResult = self.collectionsFetchResultsAssets[section];
+    
+    /*//find the actual albums that has asset available
+    NSInteger count = 0;
+    for (NSInteger i = 0; i < fetchResult.count; i++){
+        PHFetchResult* assetsFetchResult = fetchResult[i];
+        if (assetsFetchResult.count > 0){
+            count++;
+        }
+    }
+    */
     return fetchResult.count;
 }
 
